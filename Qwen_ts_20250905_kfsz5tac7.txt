@@ -1,0 +1,41 @@
+export class AegisWebSocket {
+  private marketUrl: string;
+  private aiUrl: string;
+  private onMarketData: (data: any) => void;
+  private onAIInsight: (insight: any) => void;
+
+  constructor(marketUrl: string, aiUrl: string) {
+    this.marketUrl = marketUrl;
+    this.aiUrl = aiUrl;
+    this.onMarketData = () => {};
+    this.onAIInsight = () => {};
+  }
+
+  setOnMarketData(callback: (data: any) => void) {
+    this.onMarketData = callback;
+  }
+
+  setOnAIInsight(callback: (insight: any) => void) {
+    this.onAIInsight = callback;
+  }
+
+  connect() {
+    const marketWs = new WebSocket(this.marketUrl);
+    const aiWs = new WebSocket(this.aiUrl);
+
+    marketWs.onmessage = (e) => {
+      const data = JSON.parse(e.data);
+      this.onMarketData(data);
+    };
+
+    aiWs.onmessage = (e) => {
+      const insight = JSON.parse(e.data);
+      this.onAIInsight(insight);
+    };
+
+    return () => {
+      marketWs.close();
+      aiWs.close();
+    };
+  }
+}

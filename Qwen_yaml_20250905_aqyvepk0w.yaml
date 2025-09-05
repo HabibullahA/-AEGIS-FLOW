@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  timescaledb:
+    image: timescale/timescaledb-ha:latest-pg14
+    environment:
+      POSTGRES_PASSWORD: aegis_secure_pass_2024
+      POSTGRES_USER: aegis_user
+      POSTGRES_DB: aegisflow_db
+    volumes:
+      - timescale_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  backend:
+    build: ./backend
+    environment:
+      - POLYGON_API_KEY=your_real_polygon_key_here
+      - DATABASE_URL=postgresql://aegis_user:aegis_secure_pass_2024@timescaledb:5432/aegisflow_db
+    ports:
+      - "8000:8000"
+    depends_on:
+      - timescaledb
+    command: uvicorn main:app --host 0.0.0.0 --port 8000
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  timescaledb_data:
